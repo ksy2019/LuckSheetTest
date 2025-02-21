@@ -3,11 +3,16 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-const goPage = (page: string) => router.replace(page)
+const loading = ref(false)
+
+function goPage(page: string) {
+  loading.value = true
+  router.replace(page)
+}
 </script>
 
 <template>
-  <div class="describe">
+  <div v-loading="loading" class="describe">
     <h1>不是很精美的Demo，使用univer 又顺手写了个LuckySheet版本</h1>
     <h2>心血来潮接入了DeepSeek,只不过只能做简单的事情（时间问题只能写不能读）</h2>
     <h3>
@@ -35,6 +40,7 @@ const goPage = (page: string) => router.replace(page)
   align-items: center;
   justify-content: center;
   flex-direction: column;
+
   .operate-bar {
     padding-top: 50px;
   }

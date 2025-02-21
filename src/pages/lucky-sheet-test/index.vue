@@ -9,6 +9,7 @@ const router = useRouter()
 
 const loading = reactive({
   chatLoading: false,
+  changePage: false,
 })
 
 const formValues = reactive({
@@ -52,6 +53,7 @@ const sheetApplication = {
     const { target, targetValue } = formValues
     if (!sheetApplication.checkRange()) {
       ElMessage.error('目标单元格输入不正确，请检查')
+      return
     }
     sheetApplication.cellRefToCoordinates(target, targetValue)
   },
@@ -59,23 +61,30 @@ const sheetApplication = {
 
 const aiApplication = {
   async chat() {
-    loading.chatLoading = true
-    const res = await axios.post('/api/chat', {
-      message: formValues.message,
-    })
-    loading.chatLoading = false
-    const { code, message } = res.data
-    if (code !== 0) {
-      ElMessage.error(code)
+    try {
+      loading.chatLoading = true
+      const res = await axios.post('/api/chat', {
+        message: formValues.message,
+      })
+      loading.chatLoading = false
+      const { code, message } = res.data
+      if (code !== 0) {
+        ElMessage.error(code)
+      }
+      const instructions = JSON.parse(message.content)
+      for (const item of instructions) {
+        sheetApplication.cellRefToCoordinates(item[0], item[1])
+      }
     }
-    const instructions = JSON.parse(message.content)
-    for (const item of instructions) {
-      sheetApplication.cellRefToCoordinates(item[0], item[1])
+    // eslint-disable-next-line unused-imports/no-unused-vars
+    catch (err) {
+      ElMessage.error('DeepSeek执行时出错')
     }
   },
 }
 
 function changPage() {
+  loading.changePage = true
   router.push('/univer-test')
 }
 
@@ -85,7 +94,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="page-container">
+  <div v-loading="loading.changePage" class="page-container">
     <div class="operate-container">
       <el-form :inline="true" :model="formValues" class="demo-form-inline">
         <el-form-item label="单元格">

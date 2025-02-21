@@ -71,18 +71,24 @@ const sheetApplication = {
 
 const aiApplication = {
   async chat() {
-    loading.chatLoading = true
-    const res = await axios.post('/api/chat', {
-      message: formValues.message,
-    })
-    loading.chatLoading = false
-    const { code, message } = res.data
-    if (code !== 0) {
-      ElMessage.error(code)
+    try {
+      loading.chatLoading = true
+      const res = await axios.post('/api/chat', {
+        message: formValues.message,
+      })
+      loading.chatLoading = false
+      const { code, message } = res.data
+      if (code !== 0) {
+        ElMessage.error(code)
+      }
+      const instructions = JSON.parse(message.content)
+      for (const item of instructions) {
+        sheetApplication.cellRefToCoordinates(item[0], item[1])
+      }
     }
-    const instructions = JSON.parse(message.content)
-    for (const item of instructions) {
-      sheetApplication.wordSheet.getRange(item[0]).setValue(item[1])
+    // eslint-disable-next-line unused-imports/no-unused-vars
+    catch (err) {
+      ElMessage.error('DeepSeek执行时出错')
     }
   },
 }
